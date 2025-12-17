@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #111, #000);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #00ff95;
+      text-shadow: 0 0 10px #00ff95;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+
+    .calculadora {
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0,255,149,0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #display {
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto 20px auto;
+      padding: 15px;
+      background: black;
+      color: #00ff95;
+      font-size: 2rem;
+      text-align: right;
+      border-radius: 10px;
+      box-shadow: inset 0 0 10px #00ff95;
+    }
+
+    .botons {
+      display: grid;
+      grid-template-columns: repeat(4, 70px);
+      gap: 10px;
+    }
+
+    button {
+      height: 60px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .negre { background: #000; color: white; }
+    .verd { background: #00ff95; color: black; font-weight: bold; }
+    .vermell { background: #ff3b30; color: white; }
+    .gris { background: #444; color: white; }
+    .enllac {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  color: #1f2933;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+  z-index: 20;
+}
+
+.enllac:hover {
+  background: #e5edff;
+  color: #4a7aff;
+}
+  </style>
+</head>
+<body>
+  <a href="index.html" class="enllac">← Tornar a la portada</a>
+  <h1>CALCULADORA</h1>
+  <div class="calculadora">
+    <div id="display">0</div>
+    <div class="botons">
+      <button class="vermell" onclick="clearDisplay()">C</button>
+      <button class="gris" onclick="sendResult()">✉️</button>
+      <button class="verd" onclick="append('/')">÷</button>
+      <button class="verd" onclick="append('*')">×</button>
+
+      <button class="negre" onclick="append('7')">7</button>
+      <button class="negre" onclick="append('8')">8</button>
+      <button class="negre" onclick="append('9')">9</button>
+      <button class="verd" onclick="append('-')">−</button>
+
+      <button class="negre" onclick="append('4')">4</button>
+      <button class="negre" onclick="append('5')">5</button>
+      <button class="negre" onclick="append('6')">6</button>
+      <button class="verd" onclick="append('+')">+</button>
+
+      <button class="negre" onclick="append('1')">1</button>
+      <button class="negre" onclick="append('2')">2</button>
+      <button class="negre" onclick="append('3')">3</button>
+      <button class="verd" onclick="calculate()">=</button>
+
+      <button class="negre" onclick="append('0')">0</button>
+      <button class="negre" onclick="append('.')">.</button>
+    </div>
+  </div>
+
+  <script>
+    let display = document.getElementById("display");
+
+    function append(value) {
+      if (display.textContent === "0") {
+        display.textContent = value;
+      } else {
+        display.textContent += value;
+      }
+    }
+
+    function clearDisplay() {
+      display.textContent = "0";
+    }
+
+    function calculate() {
+      try {
+        display.textContent = eval(display.textContent);
+      } catch {
+        display.textContent = "Error";
+      }
+    }
+
+    function sendResult() {
+      alert("Resultat: " + display.textContent);
+    }
+  </script>
+</body>
+</html>

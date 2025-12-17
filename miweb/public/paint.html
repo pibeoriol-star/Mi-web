@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de dibuix PRO - Oriol</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #111, #000);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    a.enllac {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: #00ff95;
+      text-decoration: none;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    a.enllac:hover {
+      text-shadow: 0 0 10px #00ff95;
+    }
+
+    h1 {
+      margin-top: 60px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 15px #00ff95;
+    }
+
+    .paint-wrapper {
+      position: relative; /* per al text flotant */
+    }
+
+    .paint-container {
+      background: #1c1c1c;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(0,255,149,0.25);
+      padding: 15px 15px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .color-picker, .size-picker, .buttons, .text-options {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    .color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 0 5px rgba(0,0,0,0.6);
+    }
+
+    .color-dot.selected {
+      box-shadow: 0 0 10px #00ff95;
+      transform: scale(1.1);
+    }
+
+    input[type="range"], select, input[type="number"] {
+      cursor: pointer;
+    }
+
+    button {
+      border: none;
+      border-radius: 20px;
+      padding: 8px 14px;
+      background: #2e2e2e;
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: 0.15s;
+    }
+
+    button:hover {
+      background: #3d3d3d;
+      transform: translateY(-1px);
+    }
+
+    button.mode {
+      background: #00ff95;
+      color: #000;
+      font-weight: bold;
+    }
+
+    button.danger {
+      background: #ff3b30;
+    }
+
+    button.danger:hover {
+      background: #ff6b60;
+    }
+
+    canvas {
+      background: #ffffff;
+      border-radius: 10px;
+      /* Ombra flotant del canvas */
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      cursor: crosshair;
+      touch-action: none;
+      display: block;
+    }
+
+    /* Quadre de text flotant, transparent i movable */
+    #textBox {
+      position: absolute;
+      border: 1px dashed #00ff95;
+      outline: none;
+      background: transparent;
+      color: black;
+      font-size: 24px;
+      display: none;
+      resize: none;
+      overflow: hidden;
+      min-width: 50px;
+      min-height: 30px;
+      padding: 2px;
+      box-sizing: border-box;
+      cursor: move;
+      z-index: 999;
+    }
+  </style>
+</head>
+
+<body>
+
+  <a href="index.html" class="enllac">← Tornar a la portada</a>
+
+  <h1>Editor de dibuix PRO</h1>
+
+  <div class="paint-wrapper">
+    <div class="paint-container">
+      <div class="toolbar">
+
+        <!-- Colors -->
+        <div class="color-picker">
+          <span class="label">Color:</span>
+          <div class="color-dot selected" data-color="#000000" style="background:#000000;"></div>
+          <div class="color-dot" data-color="#ff0000" style="background:#ff0000;"></div>
+          <div class="color-dot" data-color="#00ff00" style="background:#00ff00;"></div>
+          <div class="color-dot" data-color="#0000ff" style="background:#0000ff;"></div>
+          <div class="color-dot" data-color="#ffff00" style="background:#ffff00;"></div>
+          <div class="color-dot" data-color="#ff00ff" style="background:#ff00ff;"></div>
+          <div class="color-dot" data-color="#00ffff" style="background:#00ffff;"></div>
+        </div>
+
+        <!-- Gruix -->
+        <div class="size-picker">
+          <span class="label">Gruix:</span>
+          <input id="sizeRange" type="range" min="1" max="40" value="5">
+        </div>
+
+        <!-- Eines -->
+        <div class="buttons">
+          <button id="modePencil" class="mode">Pinzell</button>
+          <button id="modeEraser">Goma</button>
+          <button id="modeSpray">Spray</button>
+          <button id="modeText">Text</button>
+        </div>
+
+        <!-- Opcions de text -->
+        <div class="text-options">
+          <span class="label">Font:</span>
+          <select id="fontSelect">
+            <option>Arial</option>
+            <option>Comic Sans MS</option>
+            <option>Times New Roman</option>
+            <option>Courier New</option>
+          </select>
+
+          <span class="label">Mida:</span>
+          <input id="textSize" type="number" value="24" min="10" max="100" style="width:60px;">
+        </div>
+
+        <!-- Accions -->
+        <div class="buttons">
+          <button id="undoBtn">Desfer</button>
+          <button id="redoBtn">Refer</button>
+          <button class="danger" id="clearBtn">Netejar</button>
+          <button id="downloadBtn">Descarregar</button>
+        </div>
+
+      </div>
+
+      <canvas id="canvas" width="1000" height="600"></canvas>
+      <textarea id="textBox"></textarea>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let drawing = false;
+    let currentColor = "#000000";
+    let brushSize = 5;
+    let mode = "pencil"; // pencil, eraser, spray, text
+
+    let lastX = 0;
+    let lastY = 0;
+
+    // Historial per desfer / refer
+    let undoStack = [];
+    let redoStack = [];
+
+    function saveState() {
+      undoStack.push(canvas.toDataURL());
+      // quan guardem nou estat, es buida el redo
+      redoStack = [];
+    }
+
+    function restoreState(fromStack, toStack) {
+      if (fromStack.length === 0) return;
+      toStack.push(canvas.toDataURL());
+      const img = new Image();
+      img.src = fromStack.pop();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+    }
+
+    // Fons blanc inicial i primer estat d'historial
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveState();
+
+    const colorDots  = document.querySelectorAll(".color-dot");
+    const sizeRange  = document.getElementById("sizeRange");
+    const modePencil = document.getElementById("modePencil");
+    const modeEraser = document.getElementById("modeEraser");
+    const modeSpray  = document.getElementById("modeSpray");
+    const modeText   = document.getElementById("modeText");
+
+    const clearBtn    = document.getElementById("clearBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const undoBtn     = document.getElementById("undoBtn");
+    const redoBtn     = document.getElementById("redoBtn");
+
+    const textBox   = document.getElementById("textBox");
+    const fontSelect = document.getElementById("fontSelect");
+    const textSize   = document.getElementById("textSize");
+
+    // Canvi de mode eina
+    function setMode(newMode) {
+      mode = newMode;
+
+      modePencil.classList.remove("mode");
+      modeEraser.classList.remove("mode");
+      modeSpray.classList.remove("mode");
+      modeText.classList.remove("mode");
+
+      if (mode === "pencil") modePencil.classList.add("mode");
+      if (mode === "eraser") modeEraser.classList.add("mode");
+      if (mode === "spray")  modeSpray.classList.add("mode");
+      if (mode === "text")   modeText.classList.add("mode");
+
+      // si canviem d'eina mentre hi ha un text obert, el tanquem
+      if (textBox.style.display === "block") {
+        textBox.style.display = "none";
+      }
+    }
+
+    modePencil.onclick = () => setMode("pencil");
+    modeEraser.onclick = () => setMode("eraser");
+    modeSpray.onclick  = () => setMode("spray");
+    modeText.onclick   = () => setMode("text");
+
+    // Colors
+    colorDots.forEach(dot => {
+      dot.addEventListener("click", () => {
+        colorDots.forEach(d => d.classList.remove("selected"));
+        dot.classList.add("selected");
+        currentColor = dot.getAttribute("data-color");
+        // canvia al pinzell automàticament
+        setMode("pencil");
+      });
+    });
+
+    // Gruix
+    sizeRange.oninput = () => {
+      brushSize = parseInt(sizeRange.value, 10);
+    };
+
+    // Botó netejar
+    clearBtn.onclick = () => {
+      saveState();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // Descarregar
+    downloadBtn.onclick = () => {
+      const link = document.createElement("a");
+      link.download = "dibuix.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+
+    // Desfer / refer
+    undoBtn.onclick = () => restoreState(undoStack, redoStack);
+    redoBtn.onclick = () => restoreState(redoStack, undoStack);
+
+    // També amb teclat: Ctrl+Z / Ctrl+Y
+    document.addEventListener("keydown", e => {
+      if (e.ctrlKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        undoBtn.click();
+      }
+      if (e.ctrlKey && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redoBtn.click();
+      }
+    });
+
+    // Obtenir coordenades relatives al canvas
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    // Dibuix suau
+    function startDrawing(e) {
+      // si fem text, no comencem dibuix
+      if (mode === "text") {
+        createTextBox(e);
+        return;
+      }
+
+      drawing = true;
+      const pos = getPos(e);
+      lastX = pos.x;
+      lastY = pos.y;
+
+      saveState(); // guardem abans de començar el traç
+
+      e.preventDefault();
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      if (mode === "text") return; // seguretat extra
+
+      const pos = getPos(e);
+
+      if (mode === "spray") {
+        // Spray: punts aleatoris al voltant del cursor
+        const density = 30;
+        ctx.fillStyle = currentColor;
+        for (let i = 0; i < density; i++) {
+          const offsetX = (Math.random() - 0.5) * brushSize * 4;
+          const offsetY = (Math.random() - 0.5) * brushSize * 4;
+          ctx.fillRect(pos.x + offsetX, pos.y + offsetY, 1, 1);
+        }
+      } else {
+        ctx.strokeStyle = (mode === "eraser") ? "#ffffff" : currentColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      }
+
+      lastX = pos.x;
+      lastY = pos.y;
+
+      e.preventDefault();
+    }
+
+    function stopDrawing() {
+      drawing = false;
+    }
+
+    // TEXT: quadre flotant, movable, transparent
+    let draggingText = false;
+    let textOffsetX = 0;
+    let textOffsetY = 0;
+
+    function createTextBox(e) {
+      const rect = canvas.getBoundingClientRect();
+      const pos = getPos(e);
+
+      // Config quadrat
+      textBox.style.left = (rect.left + pos.x) + "px";
+      textBox.style.top = (rect.top + pos.y) + "px";
+      textBox.style.fontFamily = fontSelect.value;
+      textBox.style.fontSize = textSize.value + "px";
+      textBox.style.color = currentColor;
+      textBox.value = "";
+      textBox.style.width = "150px";
+      textBox.style.height = "40px";
+      textBox.style.display = "block";
+
+      textBox.focus();
+    }
+
+    // Drag del text
+    textBox.addEventListener("mousedown", e => {
+      draggingText = true;
+      textOffsetX = e.offsetX;
+      textOffsetY = e.offsetY;
+      e.stopPropagation();
+    });
+
+    document.addEventListener("mousemove", e => {
+      if (!draggingText) return;
+      textBox.style.left = (e.clientX - textOffsetX) + "px";
+      textBox.style.top = (e.clientY - textOffsetY) + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+      draggingText = false;
+    });
+
+    // Fixar el text al canvas amb Enter
+    textBox.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const text = textBox.value;
+        if (text.trim() === "") {
+          textBox.style.display = "none";
+          return;
+        }
+
+        saveState();
+
+        // coordenades del textBox → coordenades al canvas
+        const canvasRect = canvas.getBoundingClientRect();
+        const boxRect = textBox.getBoundingClientRect();
+
+        const x = boxRect.left - canvasRect.left;
+        const y = boxRect.top - canvasRect.top + parseInt(textSize.value, 10);
+
+        ctx.font = `${textSize.value}px ${fontSelect.value}`;
+        ctx.fillStyle = currentColor;
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText(text, x, y);
+
+        textBox.style.display = "none";
+      }
+    });
+
+    // Evitar que el textBox faci scroll amb la roda
+    textBox.addEventListener("wheel", e => e.preventDefault(), { passive: false });
+
+    // Esdeveniments del canvas (ratolí)
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    // Esdeveniments del canvas (tacte)
+    canvas.addEventListener("touchstart", e => {
+      startDrawing(e);
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", e => {
+      draw(e);
+    }, { passive: false });
+
+    canvas.addEventListener("touchend", () => {
+      stopDrawing();
+    });
+
+    canvas.addEventListener("touchcancel", () => {
+      stopDrawing();
+    });
+  </script>
+
+</body>
+</html>
